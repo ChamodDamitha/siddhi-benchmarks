@@ -1,0 +1,13 @@
+Event : timestamp : 1506331323073, cardinality : 1
+Event : timestamp : 1506331334385, cardinality : 10000
+Event : timestamp : 1506331345907, cardinality : 10000
+Event : timestamp : 1506331357326, cardinality : 10000
+Event : timestamp : 1506331368781, cardinality : 10000
+Event : timestamp : 1506331380201, cardinality : 10000
+Event : timestamp : 1506331391486, cardinality : 10000
+Event : timestamp : 1506331402670, cardinality : 10000
+Event : timestamp : 1506331413811, cardinality : 10000
+Event : timestamp : 1506331425031, cardinality : 10000
+Event : timestamp : 1506331436239, cardinality : 10000
+Exit flag set.
+Done the experiment. Exitting the benchmark.

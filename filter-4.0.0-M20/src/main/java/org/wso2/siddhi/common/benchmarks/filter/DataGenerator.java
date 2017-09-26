@@ -20,6 +20,7 @@ package org.wso2.siddhi.common.benchmarks.filter;
 
 import org.apache.log4j.Logger;
 import org.wso2.siddhi.core.stream.input.InputHandler;
+
 import java.util.Random;
 
 
@@ -37,18 +38,22 @@ public class DataGenerator extends Thread {
     }
 
     public void run() {
-
-        Random rand = new Random();
-        Object[] dataItem = new Object[]{System.currentTimeMillis(), rand.nextFloat()};
+//        Random rand = new Random(123);
+        int i = 0;
+        Object[] dataItem = new Object[]{System.currentTimeMillis(), i};
 
         while (!shutdownFlag) {
             try {
                 inputHandler.send(dataItem);
                 dataItem[0] = System.currentTimeMillis();
-                dataItem[1] = rand.nextFloat();
+                dataItem[1] = i;
+                if (i % 100 == 0) {
+                    Thread.sleep(1);
+                }
             } catch (InterruptedException e) {
                 log.error("Error sending an event to Input Handler, " + e.getMessage(), e);
             }
+            i++;
         }
     }
 

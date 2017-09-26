@@ -25,6 +25,7 @@ import org.wso2.siddhi.core.SiddhiManager;
 import org.wso2.siddhi.core.event.Event;
 import org.wso2.siddhi.core.stream.input.InputHandler;
 import org.wso2.siddhi.core.stream.output.StreamCallback;
+import org.wso2.siddhi.core.util.EventPrinter;
 
 
 import java.io.BufferedReader;
@@ -68,7 +69,7 @@ public class SiddhiFilterBenchmark {
 
     public static void main(String[] args) {
 
-        totalExperimentDuration = Long.parseLong(args[0]) * 60000;
+        totalExperimentDuration = Long.parseLong(args[0]) * 120000;
         warmupPeriod = Long.parseLong(args[1]) * 60000;
 
         try {
@@ -83,12 +84,12 @@ public class SiddhiFilterBenchmark {
             sequenceNumber = getLogFileSequenceNumber();
             outputFileTimeStamp = System.currentTimeMillis();
             fstream = new OutputStreamWriter(new FileOutputStream(new File(logDir + "/output-" +
-                                                                                   sequenceNumber + "-" +
+                    sequenceNumber + "-" +
 
-                                                                                   (outputFileTimeStamp)
-                                                                                   + ".csv")
-                                                                          .getAbsoluteFile()), StandardCharsets
-                                                     .UTF_8);
+                    (outputFileTimeStamp)
+                    + ".csv")
+                    .getAbsoluteFile()), StandardCharsets
+                    .UTF_8);
 
         } catch (IOException e) {
             log.error("Error while creating statistics output file, " + e.getMessage(), e);
@@ -96,10 +97,15 @@ public class SiddhiFilterBenchmark {
 
         SiddhiManager siddhiManager = new SiddhiManager();
 
-        String siddhiApp = "define stream inputStream ( iij_timestamp long, value float);"
-                + "define stream outputStream ( iij_timestamp long, value float);"
-                + "@info(name = 'query1') from inputStream [value < 2.0] "
-                + "select iij_timestamp, value insert into outputStream;";
+        String siddhiApp = "define stream inputStream ( iij_timestamp long, ip int);"
+                + "define stream outputStream ( iij_timestamp long, cardinality long);"
+                + "@info(name = 'query1') from inputStream#window.length(1000)#approximate:cardinality(ip, 0.05) "
+                + "select iij_timestamp, cardinality insert into outputStream;";
+
+//        String siddhiApp = "define stream inputStream ( iij_timestamp long, ip int);"
+//                + "define stream outputStream ( iij_timestamp long, cardinality long);"
+//                + "@info(name = 'query1') from inputStream#window.length(1000) "
+//                + "select iij_timestamp, distinctCount(ip) as cardinality insert into outputStream;";
 
         SiddhiAppRuntime siddhiAppRuntime = siddhiManager.createSiddhiAppRuntime(siddhiApp);
 
@@ -108,10 +114,15 @@ public class SiddhiFilterBenchmark {
         dataLoader.start();
 
         siddhiAppRuntime.addCallback("outputStream", new StreamCallback() {
+            long count = 0;
 
             @Override
             public void receive(Event[] events) {
                 for (Event evt : events) {
+                    if (count % 10000 == 0) {
+                        System.out.println("Event : " + "timestamp : " + evt.getData()[0]
+                                + ", cardinality : " + evt.getData()[1]);
+                    }
                     long currentTime = System.currentTimeMillis();
 
                     if (firstTupleTime == -1) {
@@ -138,19 +149,19 @@ public class SiddhiFilterBenchmark {
                             if (!flag) {
                                 flag = true;
                                 fstream.write("Id, Throughput in this window (events/second), Entire throughput " +
-                                                      "for the run (events/second), Total elapsed time(s), Average "
-                                                      + "latency "
-                                                      +
-                                                      "per event (ms), Entire Average latency per event (ms), Total "
-                                                      + "number"
-                                                      + " of "
-                                                      +
-                                                      "events received (non-atomic)," + "AVG latency from start (90),"
-                                                      + "" + "AVG latency from start(95), " + "AVG latency from start "
-                                                      + "(99)," + "AVG latency in this "
-                                                      + "window(90)," + "AVG latency in this window(95),"
-                                                      + "AVG latency "
-                                                      + "in this window(99)");
+                                        "for the run (events/second), Total elapsed time(s), Average "
+                                        + "latency "
+                                        +
+                                        "per event (ms), Entire Average latency per event (ms), Total "
+                                        + "number"
+                                        + " of "
+                                        +
+                                        "events received (non-atomic)," + "AVG latency from start (90),"
+                                        + "" + "AVG latency from start(95), " + "AVG latency from start "
+                                        + "(99)," + "AVG latency in this "
+                                        + "window(90)," + "AVG latency in this window(95),"
+                                        + "AVG latency "
+                                        + "in this window(99)");
                                 fstream.write("\r\n");
                             }
 
@@ -192,6 +203,7 @@ public class SiddhiFilterBenchmark {
                     } catch (Exception e) {
                         log.error("Error while consuming event, " + e.getMessage(), e);
                     }
+                    count++;
                 }
             }
         });
@@ -232,12 +244,12 @@ public class SiddhiFilterBenchmark {
 
 
             fstream = new OutputStreamWriter(new FileOutputStream(new File(filteredLogDir + "/output-" +
-                                                                                   sequenceNumber + "-" +
+                    sequenceNumber + "-" +
 
-                                                                                   (outputFileTimeStamp)
-                                                                                   + ".csv")
-                                                                          .getAbsoluteFile()), StandardCharsets
-                                                     .UTF_8);
+                    (outputFileTimeStamp)
+                    + ".csv")
+                    .getAbsoluteFile()), StandardCharsets
+                    .UTF_8);
 
         } catch (IOException e) {
             log.error("Error while creating statistics output file, " + e.getMessage(), e);
@@ -253,8 +265,8 @@ public class SiddhiFilterBenchmark {
             int iteration = 0;
             br = new BufferedReader(
                     new InputStreamReader(new FileInputStream(logDir + "/output-" + sequenceNumber + "-" +
-                                                                      (outputFileTimeStamp) + ".csv"),
-                                          Charset.forName("UTF-8")));
+                            (outputFileTimeStamp) + ".csv"),
+                            Charset.forName("UTF-8")));
 
 
             while ((line = br.readLine()) != null) {
@@ -330,7 +342,7 @@ public class SiddhiFilterBenchmark {
 
             if (sequenceFile.exists()) {
                 br = new BufferedReader(new InputStreamReader(new FileInputStream(logDir + "/sequence-number.txt"),
-                                                              Charset.forName("UTF-8")));
+                        Charset.forName("UTF-8")));
 
                 while ((sCurrentLine = br.readLine()) != null) {
                     result = Integer.parseInt(sCurrentLine);
