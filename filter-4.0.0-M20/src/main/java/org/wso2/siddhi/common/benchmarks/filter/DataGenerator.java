@@ -47,11 +47,15 @@ public class DataGenerator extends Thread {
                 inputHandler.send(dataItem);
                 dataItem[0] = System.currentTimeMillis();
                 dataItem[1] = i;
-                if (i % 100 == 0) {
+                if (i % 1000 == 0) {
                     Thread.sleep(1);
                 }
             } catch (InterruptedException e) {
                 log.error("Error sending an event to Input Handler, " + e.getMessage(), e);
+            }
+            //log
+            if (i % 1000000 == 0) {
+                System.out.println("sent i : " + i);
             }
             i++;
         }

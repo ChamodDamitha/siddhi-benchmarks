@@ -50,7 +50,7 @@ public class SiddhiFilterBenchmark {
     private static long firstTupleTime = -1;
     private static String logDir = "./results-filter-4.0.0-M20";
     private static String filteredLogDir = "./filtered-results-filter-4.0.0-M20";
-    private static final int RECORD_WINDOW = 10000; //This is the number of events to record.
+    private static final int RECORD_WINDOW = 1000000; //This is the number of events to record.
     private static long eventCountTotal = 0;
     private static long eventCount = 0;
     private static long timeSpent = 0;
@@ -69,7 +69,7 @@ public class SiddhiFilterBenchmark {
 
     public static void main(String[] args) {
 
-        totalExperimentDuration = Long.parseLong(args[0]) * 120000;
+        totalExperimentDuration = Long.parseLong(args[0]) * 60000;
         warmupPeriod = Long.parseLong(args[1]) * 60000;
 
         try {
@@ -97,15 +97,29 @@ public class SiddhiFilterBenchmark {
 
         SiddhiManager siddhiManager = new SiddhiManager();
 
-        String siddhiApp = "define stream inputStream ( iij_timestamp long, ip int);"
-                + "define stream outputStream ( iij_timestamp long, cardinality long);"
-                + "@info(name = 'query1') from inputStream#window.length(1000)#approximate:cardinality(ip, 0.05) "
-                + "select iij_timestamp, cardinality insert into outputStream;";
+//        ...........................percentile........................................
+
+//        String siddhiApp = "define stream inputStream ( iij_timestamp long, ip int);"
+//                + "define stream outputStream ( iij_timestamp long, percentile double);"
+//                + "@info(name = 'query1') from inputStream "
+//                + "select iij_timestamp, math:percentile(ip, 0.5) as percentile insert into outputStream;";
+
+
+//        ...........................cardinality.......................................
+//        String siddhiApp = "define stream inputStream ( iij_timestamp long, ip int);"
+//                + "define stream outputStream ( iij_timestamp long, percentile double);"
+//                + "@info(name = 'query1') from inputStream#window.length(10) "
+//                + "select iij_timestamp, approximate:percentile(ip, 0.5, 0.1) as percentile insert into outputStream;";
 
 //        String siddhiApp = "define stream inputStream ( iij_timestamp long, ip int);"
 //                + "define stream outputStream ( iij_timestamp long, cardinality long);"
-//                + "@info(name = 'query1') from inputStream#window.length(1000) "
-//                + "select iij_timestamp, distinctCount(ip) as cardinality insert into outputStream;";
+//                + "@info(name = 'query1') from inputStream#approximate:cardinality(ip, 0.5) "
+//                + "select iij_timestamp, cardinality insert into outputStream;";
+
+        String siddhiApp = "define stream inputStream ( iij_timestamp long, ip int);"
+                + "define stream outputStream ( iij_timestamp long, cardinality long);"
+                + "@info(name = 'query1') from inputStream "
+                + "select iij_timestamp, distinctCount(ip) as cardinality insert into outputStream;";
 
         SiddhiAppRuntime siddhiAppRuntime = siddhiManager.createSiddhiAppRuntime(siddhiApp);
 
@@ -115,11 +129,16 @@ public class SiddhiFilterBenchmark {
 
         siddhiAppRuntime.addCallback("outputStream", new StreamCallback() {
             long count = 0;
-
             @Override
             public void receive(Event[] events) {
                 for (Event evt : events) {
-                    if (count % 10000 == 0) {
+//                    if (count % 1000000 == 0) {
+//                        System.out.println("recevied i : " + count);
+//                        System.out.println("Event : " + "timestamp : " + evt.getData()[0]
+//                                + ", percentile : " + evt.getData()[1]);
+//                    }
+                    if (count % 1000000 == 0) {
+                        System.out.println("recevied i : " + count);
                         System.out.println("Event : " + "timestamp : " + evt.getData()[0]
                                 + ", cardinality : " + evt.getData()[1]);
                     }
