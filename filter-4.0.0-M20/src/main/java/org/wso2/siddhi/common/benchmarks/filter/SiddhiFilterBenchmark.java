@@ -97,12 +97,18 @@ public class SiddhiFilterBenchmark {
 
         SiddhiManager siddhiManager = new SiddhiManager();
 
-//        ...........................percentile........................................
+//        ...........................count........................................
+
+        String siddhiApp = "define stream inputStream ( iij_timestamp long, ip int);"
+                + "define stream outputStream ( iij_timestamp long, count long);"
+                + "@info(name = 'query1') from inputStream#window.length(100000)#approximate:count(ip, 0.0001, 0.9) "
+                + "select iij_timestamp, count insert into outputStream;";
 
 //        String siddhiApp = "define stream inputStream ( iij_timestamp long, ip int);"
-//                + "define stream outputStream ( iij_timestamp long, percentile double);"
-//                + "@info(name = 'query1') from inputStream "
-//                + "select iij_timestamp, math:percentile(ip, 0.5) as percentile insert into outputStream;";
+//                + "define stream outputStream ( iij_timestamp long, count long);"
+//                + "@info(name = 'query1') from inputStream#window.length(100000)#exact:count(ip) "
+//                + "select iij_timestamp, count insert into outputStream;";
+
 
 
 //        ...........................cardinality.......................................
@@ -116,10 +122,10 @@ public class SiddhiFilterBenchmark {
 //                + "@info(name = 'query1') from inputStream#approximate:cardinality(ip, 0.5) "
 //                + "select iij_timestamp, cardinality insert into outputStream;";
 
-        String siddhiApp = "define stream inputStream ( iij_timestamp long, ip int);"
-                + "define stream outputStream ( iij_timestamp long, cardinality long);"
-                + "@info(name = 'query1') from inputStream "
-                + "select iij_timestamp, distinctCount(ip) as cardinality insert into outputStream;";
+//        String siddhiApp = "define stream inputStream ( iij_timestamp long, ip int);"
+//                + "define stream outputStream ( iij_timestamp long, cardinality long);"
+//                + "@info(name = 'query1') from inputStream "
+//                + "select iij_timestamp, distinctCount(ip) as cardinality insert into outputStream;";
 
         SiddhiAppRuntime siddhiAppRuntime = siddhiManager.createSiddhiAppRuntime(siddhiApp);
 
@@ -132,16 +138,16 @@ public class SiddhiFilterBenchmark {
             @Override
             public void receive(Event[] events) {
                 for (Event evt : events) {
-//                    if (count % 1000000 == 0) {
-//                        System.out.println("recevied i : " + count);
-//                        System.out.println("Event : " + "timestamp : " + evt.getData()[0]
-//                                + ", percentile : " + evt.getData()[1]);
-//                    }
                     if (count % 1000000 == 0) {
                         System.out.println("recevied i : " + count);
                         System.out.println("Event : " + "timestamp : " + evt.getData()[0]
-                                + ", cardinality : " + evt.getData()[1]);
+                                + ", count : " + evt.getData()[1]);
                     }
+//                    if (count % 1000000 == 0) {
+//                        System.out.println("recevied i : " + count);
+//                        System.out.println("Event : " + "timestamp : " + evt.getData()[0]
+//                                + ", cardinality : " + evt.getData()[1]);
+//                    }
                     long currentTime = System.currentTimeMillis();
 
                     if (firstTupleTime == -1) {

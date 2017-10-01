@@ -38,15 +38,15 @@ public class DataGenerator extends Thread {
     }
 
     public void run() {
-//        Random rand = new Random(123);
+        Random rand = new Random(123);
         int i = 0;
-        Object[] dataItem = new Object[]{System.currentTimeMillis(), i};
+                        Object[] dataItem = new Object[]{System.currentTimeMillis(), rand.nextInt(10000)};
 
         while (!shutdownFlag) {
             try {
                 inputHandler.send(dataItem);
                 dataItem[0] = System.currentTimeMillis();
-                dataItem[1] = i;
+                dataItem[1] = rand.nextInt(10000);
                 if (i % 1000 == 0) {
                     Thread.sleep(1);
                 }
